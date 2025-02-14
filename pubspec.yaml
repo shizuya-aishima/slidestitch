@@ -95,8 +95,13 @@ flutter:
 
 msix_config:
   display_name: SlideStitch
-  publisher_display_name: Your Name
-  identity_name: com.example.slidestitch
+  publisher_display_name: Shizuya Aishima
+  identity_name: com.shizuyaaishima.slidestitch
   msix_version: 1.0.0.0
   logo_path: assets/logo.png
   capabilities: internetClient
+  certificate_path: certificate/certificate.pfx
+  certificate_password: slidestitch
+  publisher: CN=Shizuya Aishima, O=Shizuya Aishima, C=JP
+  sign_msix: true
+  install_certificate: false
