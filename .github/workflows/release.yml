@@ -34,18 +34,18 @@ jobs:
       - name: Create MSIX
         run: flutter pub run msix:create
         
-      - name: Prepare Release Files
+      - name: List Build Directory
         run: |
-          copy build\windows\runner\Release\slidestitch.exe build\windows\runner\Release\
-          copy build\windows\x64\Release\slidestitch.msix build\windows\runner\Release\
+          dir build\windows\x64\Release
+          dir build\windows\runner\Release
         
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/windows/runner/Release/slidestitch.exe
-            build/windows/runner/Release/slidestitch.msix
+            build/windows/x64/Release/slidestitch.exe
+            build/windows/x64/Release/slidestitch.msix
           draft: false
           prerelease: false
           generate_release_notes: true
