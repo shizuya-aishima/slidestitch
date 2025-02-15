@@ -34,20 +34,17 @@ jobs:
       - name: Create MSIX
         run: flutter pub run msix:create
         
-      - name: List Build Directory
+      - name: Create Release ZIP
         run: |
-          cd ${{ github.workspace }}
-          dir
-          dir build
-          dir build\windows
-          dir build\windows\x64\runner\Release
+          cd build/windows/x64/runner/Release
+          7z a -tzip ${{ github.workspace }}/windows-release.zip *
         
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./build/windows/x64/runner/Release/ppt_merger.exe
+            ./windows-release.zip
             ./build/windows/x64/Release/slidestitch.msix
           draft: false
           prerelease: false
