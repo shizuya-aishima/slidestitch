@@ -93,21 +93,29 @@ class _MyHomePageState extends State<MyHomePage> {
 
       // PowerPointファイルをマージするコマンドを実行
       final shell = Shell();
-      final command = '''
-        powershell.exe -Command "
-          \$powerPoint = New-Object -ComObject PowerPoint.Application;
-          \$powerPoint.Visible = [Microsoft.Office.Core.MsoTriState]::msoFalse;
-          \$presentation = \$powerPoint.Presentations.Open('${files[0]}');
-          foreach(\$file in @('${files.skip(1).join("','")}')) {
-            \$presentation.Windows[1].Activate();
-            \$presentation.Slides.InsertFromFile(\$file, \$presentation.Slides.Count);
-          }
-          \$presentation.SaveAs('$outputFile');
-          \$presentation.Close();
-          \$powerPoint.Quit();
-        "
-      ''';
-      await shell.run(command);
+
+      // 一時的なVBScriptファイルを作成
+      final tempDir = await Directory.systemTemp.createTemp();
+      final scriptPath = path.join(tempDir.path, 'merge.vbs');
+      final script = '''
+Set powerPoint = CreateObject("PowerPoint.Application")
+powerPoint.Visible = False
+Set presentation = powerPoint.Presentations.Open("$files[0]")
+${files.skip(1).map((file) => '''
+presentation.Windows(1).Activate
+presentation.Slides.InsertFromFile "$file", presentation.Slides.Count
+''').join('\n')}
+presentation.SaveAs "$outputFile"
+presentation.Close
+powerPoint.Quit
+''';
+      await File(scriptPath).writeAsString(script);
+
+      // VBScriptを実行
+      await shell.run('cmd /c cscript //NoLogo "$scriptPath"');
+
+      // 一時ファイルを削除
+      await tempDir.delete(recursive: true);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('マージが完了しました')),
