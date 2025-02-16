@@ -42,10 +42,18 @@ jobs:
           curl -L -o is.exe https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe
           ./is.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
         
+      - name: Check Build Directory
+        run: |
+          echo "Checking build directory structure..."
+          dir build\windows\x64\runner\Release
+          echo "Creating installer directory..."
+          mkdir -p build\windows\installer
+        
       - name: Build Installer
         run: |
-          dir windows
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "${{ github.workspace }}\windows\installer.iss"
+          echo "Current directory: ${{ github.workspace }}"
+          cd windows
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
         
       - name: Generate timestamp
         id: timestamp
