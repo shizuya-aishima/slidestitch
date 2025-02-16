@@ -44,7 +44,8 @@ jobs:
         
       - name: Build Installer
         run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows/installer.iss
+          dir windows
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "${{ github.workspace }}\windows\installer.iss"
         
       - name: Generate timestamp
         id: timestamp
