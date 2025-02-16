@@ -1,0 +1,73 @@
+name: Pre-Release Build
+
+on:
+  push:
+    branches:
+      - 'pre-release'
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.9'
+          channel: 'stable'
+          cache: true
+      
+      - name: Install dependencies
+        run: flutter pub get
+        
+      - name: Run tests
+        run: flutter test
+        
+      - name: Build Windows
+        run: flutter build windows
+        
+      - name: Create MSIX
+        run: flutter pub run msix:create
+
+      - name: Download Inno Setup
+        run: |
+          curl -L -o is.exe https://files.jrsoftware.org/is/6/innosetup-6.2.2.exe
+          ./is.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+        
+      - name: Build Installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows/installer.iss
+        
+      - name: Generate timestamp
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y%m%d_%H%M')" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Create Pre-Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./build/windows/installer/SlideStitch_Setup.exe
+            ./build/windows/x64/Release/slidestitch.msix
+          name: "Pre-release build ${{ steps.timestamp.outputs.timestamp }}"
+          tag_name: "pre-release-${{ steps.timestamp.outputs.timestamp }}"
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            ⚠️ これはプレリリースビルドです。テスト目的でのみ使用してください。
+            
+            ビルド日時: ${{ steps.timestamp.outputs.timestamp }}
+            
+            ## 変更点
+            - プレリリースビルドの自動生成
+            - 最新の開発版コードを含む
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
